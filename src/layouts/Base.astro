@@ -1,0 +1,62 @@
+---
+import "@fontsource-variable/instrument-sans";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/500.css";
+import "../styles/global.css";
+import { t, paths, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+  title?: string;
+  description?: string;
+  /** Adresse derselben Seite in der anderen Sprache */
+  alt: string;
+  current?: "posts" | "about";
+}
+const { lang, title, description, alt, current } = Astro.props;
+const s = t[lang];
+const other: Lang = lang === "de" ? "en" : "de";
+const fullTitle = title ? `${title} · ${s.name}` : s.name;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const altUrl = new URL(alt, Astro.site);
+const rss = lang === "de" ? "/rss.xml" : "/en/rss.xml";
+---
+<!doctype html>
+<html lang={s.htmlLang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    {description && <meta name="description" content={description} />}
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang={lang} href={canonical} />
+    <link rel="alternate" hreflang={other} href={altUrl} />
+    <link rel="alternate" type="application/rss+xml" title={s.rssTitle} href={rss} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:title" content={fullTitle} />
+    {description && <meta property="og:description" content={description} />}
+    <meta property="og:url" content={canonical} />
+  </head>
+  <body>
+    <header class="site-head">
+      <div class="wrap">
+        <a class="brand" href={paths[lang].home}><span class="dot" aria-hidden="true"></span>{s.name}</a>
+        <nav class="site-nav mono" aria-label={lang === "de" ? "Hauptmenü" : "Main"}>
+          <a href={`${paths[lang].home}#beitraege`} aria-current={current === "posts" ? "page" : undefined}>{s.nav.posts}</a>
+          <a href={`${paths[lang].home}#projekte`}>{s.nav.projects}</a>
+          <a href={paths[lang].about} aria-current={current === "about" ? "page" : undefined}>{s.nav.about}</a>
+          <a href={alt} hreflang={other} lang={other}>{s.otherLang}</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-foot">
+      <div class="wrap mono">
+        <span>© {new Date().getFullYear()} {s.name} · {s.footer}</span>
+        <span><a href={rss}>RSS</a> · <a href="https://github.com/dragondiver">GitHub</a></span>
+      </div>
+    </footer>
+  </body>
+</html>
